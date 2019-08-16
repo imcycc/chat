@@ -12,11 +12,11 @@ const server = net.createServer((socket) => {
   socket.once('data', (buffer) => {
     // 接收到HTTP请求头数据
     const str = buffer.toString()
-    console.log(str)
+    // console.log(str)
 
     // 4. 将请求头数据转为对象
     const headers = parseHeader(str)
-    console.log(headers)
+    // console.log(headers)
 
     // 5. 判断请求是否为WebSocket连接
     if (headers['upgrade'] !== 'websocket') {
@@ -50,7 +50,7 @@ const server = net.createServer((socket) => {
 
       socket.write(header)  // 返回HTTP头，告知客户端校验结果，HTTP状态码101表示切换协议：https://httpstatuses.com/101。
       // 若客户端校验结果正确，在控制台的Network模块可以看到HTTP请求的状态码变为101 Switching Protocols，同时客户端的ws.onopen事件被触发。
-      console.log(header)
+      // console.log(header)
 
       // 7. 建立连接后，通过data事件接收客户端的数据并处理
       socket.on('data', (buffer) => {

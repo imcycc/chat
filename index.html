@@ -3,6 +3,8 @@
 
 <head>
   <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
   <title></title>
   <style>
     * {
@@ -15,7 +17,7 @@
 <body style="padding: 20px;">
   <div id="box" style="height: 400px; width: 500px; border: 1px solid #000; margin-bottom: 20px; overflow-y: auto;">
   </div>
-  <textarea id="text" rows="6" style="width: 500px;"></textarea>
+  <textarea id="text" rows="6" style="width: 500px;" placeholder="请输入聊天内容..."></textarea>
   <br />
   <button id="btn">发送</button>
 </body>
@@ -26,11 +28,11 @@
     var ws = new WebSocket("ws://132.232.16.28:5555");
     // var ws = new WebSocket("ws://localhost:5555");
     ws.onopen = function () {
-      // Web Socket 已连接上，使用 send() 方法发送数据
       console.log('已连接...')
     };
 
     ws.onmessage = function (evt) {
+      // 收到消息
       var received_msg = evt.data;
       var div = document.createElement('div');
       div.innerHTML = received_msg;
@@ -38,15 +40,28 @@
     };
 
     ws.onclose = function () {
-      // 关闭 websocket
       console.log("连接已关闭...");
     };
 
     btn.onclick = () => {
-      console.log(text.value)
       if (text.value) {
+        // 发消息
         ws.send(text.value);
         text.value = '';
+      }
+    }
+
+    document.onkeydown = function (event) {
+      event.preventDefault();
+      var event = event || window.event;
+      if (event.keyCode === 13) {
+        if (text === document.activeElement) {
+          if (text.value) {
+            // 发消息
+            ws.send(text.value);
+            text.value = '';
+          }
+        }
       }
     }
 
