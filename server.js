@@ -8,10 +8,7 @@ const socketList = [];
 // 使用net模块创建服务器，返回的是一个原始的socket对象，与Socket.io的socket对象不同。
 const server = net.createServer((socket) => {
   socketList.push(socket)
-  console.log('socketsocketsocketsocketsocket');
-  console.log(socketList.length);
-
-
+  console.log(socketList.length)
   socket.once('data', (buffer) => {
     // 接收到HTTP请求头数据
     const str = buffer.toString()
@@ -26,10 +23,16 @@ const server = net.createServer((socket) => {
       // 若当前请求不是WebSocket连接，则关闭连接
       console.log('非WebSocket连接')
       socket.end()
+      // 删除用户组记录
+      let index = socketList.indexOf(socket);
+      socketList.splice(index, 1);
     } else if (headers['sec-websocket-version'] !== '13') {
       // 判断WebSocket版本是否为13，防止是其他版本，造成兼容错误
       console.log('WebSocket版本错误')
       socket.end()
+      // 删除用户组记录
+      let index = socketList.indexOf(socket);
+      socketList.splice(index, 1);
     } else {
       // 6. 校验Sec-WebSocket-Key，完成连接
       /* 
@@ -52,12 +55,14 @@ const server = net.createServer((socket) => {
       // 7. 建立连接后，通过data事件接收客户端的数据并处理
       socket.on('data', (buffer) => {
         const data = decodeWsFrame(buffer)
-        console.log(data)
-        console.log(data.payloadData && data.payloadData.toString())
 
         // opcode为8，表示客户端发起了断开连接
         if (data.opcode === 8) {
           socket.end()  // 与客户端断开连接
+
+          // 删除用户组记录
+          let index = socketList.indexOf(socket);
+          socketList.splice(index, 1);
         } else {
           // 接收到客户端数据时的处理，此处默认为返回接收到的数据。
           // socket.write(encodeWsFrame({ payloadData: `服务端接收到的消息为：${data.payloadData ? data.payloadData.toString() : ''}` }))

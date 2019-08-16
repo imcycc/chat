@@ -24,6 +24,7 @@
   window.onload = function () {
     // 打开一个 web socket
     var ws = new WebSocket("ws://132.232.16.28:5555");
+    // var ws = new WebSocket("ws://localhost:5555");
     ws.onopen = function () {
       // Web Socket 已连接上，使用 send() 方法发送数据
       console.log('已连接...')
