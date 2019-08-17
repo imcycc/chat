@@ -36,8 +36,19 @@ const sendMessage = (msgjson) => {
     time: new Date(),
   }
   const jsonStr = JSON.stringify(json);
-  userList.forEach(d => {
-    d.socket.write(encodeWsFrame({ payloadData: jsonStr }))
+  userList.forEach(item => {
+    try {
+      item.socket.write(encodeWsFrame({ payloadData: jsonStr }))
+    } catch (error) {
+      console.log(error)
+      let index = -1;
+      userList.forEach((d, i) => {
+        if (d.socket === item.socket) {
+          index = i;
+        }
+      });
+      userList.splice(index, 1);
+    }
   })
 }
 
@@ -85,11 +96,9 @@ const server = net.createServer((socket) => {
       // 7. 建立连接后，通过data事件接收客户端的数据并处理
       socket.on('data', (buffer) => {
         const data = decodeWsFrame(buffer)
-        console.log(data)
         // opcode为8，表示客户端发起了断开连接
         if (data.opcode === 8) {
           socket.end()  // 与客户端断开连接
-          console.log('one go');
           deleteUser(socket);  // 删除用户
         } else {
           // 接收到客户端数据时的处理，此处默认为返回接收到的数据。
