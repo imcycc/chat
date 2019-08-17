@@ -16,7 +16,6 @@ const insertUser = (socket) => {
   });
 }
 const deleteUser = (socket) => {
-  userHistoryCount--;
   const userId = userList.find(d => d.socket === socket).id;
   let index = -1;
   userList.forEach((d, i) => {
@@ -28,7 +27,7 @@ const deleteUser = (socket) => {
   sendMessage({
     userId,
     type: 'delete',
-    data: userHistoryCount.toString(),
+    data: userList.length.toString(),
   });
 }
 
