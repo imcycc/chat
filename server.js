@@ -2,37 +2,66 @@
 const net = require('net')
 const crypto = require('crypto');
 
-const socketList = [];
+let userList = [];
+let userHistoryCount = 0;
 
+const insertUser = (socket) => {
+  userHistoryCount++;
+  userList.push({ id: userHistoryCount, socket });
+  sendMessage({
+    userId: userList.find(d => d.socket === socket).id,
+    type: 'insert',
+    data: userHistoryCount.toString(),
+  });
+}
+const deleteUser = (socket) => {
+  userHistoryCount--;
+  const userId = userList.find(d => d.socket === socket).id;
+  let index = -1;
+  userList.forEach((d, i) => {
+    if (d.socket === socket) {
+      index = i;
+    }
+  });
+  userList.splice(index, 1);
+  sendMessage({
+    userId,
+    type: 'delete',
+    data: userHistoryCount.toString(),
+  });
+}
+
+const sendMessage = (msgjson) => {
+  const json = {
+    ...msgjson,
+    time: new Date(),
+  }
+  const jsonStr = JSON.stringify(json);
+  userList.forEach(d => {
+    d.socket.write(encodeWsFrame({ payloadData: jsonStr }))
+  })
+}
 
 // 使用net模块创建服务器，返回的是一个原始的socket对象，与Socket.io的socket对象不同。
 const server = net.createServer((socket) => {
-  socketList.push(socket)
-  console.log(socketList.length)
+
+
   socket.once('data', (buffer) => {
     // 接收到HTTP请求头数据
     const str = buffer.toString()
-    // console.log(str)
 
     // 4. 将请求头数据转为对象
     const headers = parseHeader(str)
-    // console.log(headers)
 
     // 5. 判断请求是否为WebSocket连接
     if (headers['upgrade'] !== 'websocket') {
       // 若当前请求不是WebSocket连接，则关闭连接
       console.log('非WebSocket连接')
       socket.end()
-      // 删除用户组记录
-      let index = socketList.indexOf(socket);
-      socketList.splice(index, 1);
     } else if (headers['sec-websocket-version'] !== '13') {
       // 判断WebSocket版本是否为13，防止是其他版本，造成兼容错误
       console.log('WebSocket版本错误')
       socket.end()
-      // 删除用户组记录
-      let index = socketList.indexOf(socket);
-      socketList.splice(index, 1);
     } else {
       // 6. 校验Sec-WebSocket-Key，完成连接
       /* 
@@ -50,7 +79,9 @@ const server = net.createServer((socket) => {
 
       socket.write(header)  // 返回HTTP头，告知客户端校验结果，HTTP状态码101表示切换协议：https://httpstatuses.com/101。
       // 若客户端校验结果正确，在控制台的Network模块可以看到HTTP请求的状态码变为101 Switching Protocols，同时客户端的ws.onopen事件被触发。
-      // console.log(header)
+
+      // 用户列表添加用户
+      insertUser(socket);
 
       // 7. 建立连接后，通过data事件接收客户端的数据并处理
       socket.on('data', (buffer) => {
@@ -59,16 +90,14 @@ const server = net.createServer((socket) => {
         // opcode为8，表示客户端发起了断开连接
         if (data.opcode === 8) {
           socket.end()  // 与客户端断开连接
-
-          // 删除用户组记录
-          let index = socketList.indexOf(socket);
-          socketList.splice(index, 1);
+          deleteUser(socket);  // 删除用户
         } else {
           // 接收到客户端数据时的处理，此处默认为返回接收到的数据。
-          // socket.write(encodeWsFrame({ payloadData: `服务端接收到的消息为：${data.payloadData ? data.payloadData.toString() : ''}` }))
-          socketList.forEach(s => {
-            s.write(encodeWsFrame({ payloadData: `${data.payloadData ? data.payloadData.toString() : ''}` }))
-          })
+          sendMessage({
+            userId: userList.find(d => d.socket === socket).id,
+            type: 'msg',
+            data: `${data.payloadData ? data.payloadData.toString() : ''}`,
+          });
         }
       })
     }
@@ -84,7 +113,7 @@ function parseHeader(str) {
   // 第一行数据为GET / HTTP/1.1，可以丢弃。
   arr.shift()
 
-  console.log(arr)
+  // console.log(arr)
   /* 
     处理结果为：
 
@@ -159,7 +188,7 @@ function decodeWsFrame(data) {
     }
   }
 
-  console.dir(frame)
+  // console.dir(frame)
   return frame;
 }
 
@@ -187,6 +216,6 @@ function encodeWsFrame(data) {
 
   frame = payloadData ? Buffer.concat([Buffer.from(frame), payloadData]) : Buffer.from(frame);
 
-  console.dir(decodeWsFrame(frame));
+  // console.dir(decodeWsFrame(frame));
   return frame;
 }

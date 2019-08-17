@@ -18,6 +18,7 @@
       margin: 0 auto;
       /* padding: 20px 0; */
       padding: 10px;
+      background: #f6f6f6;
     }
 
     h3 {
@@ -37,11 +38,40 @@
     #ipt {
       width: 100%;
     }
+
+    .msg-agent {
+      position: relative;
+      width: 100%;
+      padding-bottom: 20px;
+    }
+
+    .name {
+      margin-bottom: 2px;
+      font-size: 12px;
+      color: #666;
+    }
+
+    .bubble {
+      min-width: 100px;
+      color: #000;
+      background-color: #fff;
+      border: 1px solid #ececec;
+      position: relative;
+      border-radius: 3px;
+      padding: 10px 15px;
+      font-size: 14px;
+      line-height: 22px;
+      word-wrap: break-word;
+      word-break: break-all;
+    }
   </style>
+  <script tepe="text/javascript" src="http://code.jquery.com/jquery-3.3.1.min.js"></script>
+  <!-- <script tepe="text/javascript" src="http://code.jquery.com/jquery-3.2.1.js"></script> -->
+
 </head>
 
 <body>
-  <h3>聊天室</h3>
+  <h3 id="title">聊天室（当前人数：0）</h3>
   <div id="box"></div>
   <textarea id="ipt" rows="6" placeholder="请输入聊天内容..."></textarea>
   <br />
@@ -49,62 +79,61 @@
 </body>
 
 <script type="text/javascript">
-  window.onload = function () {
-    // 打开一个 web socket
-    var ws = new WebSocket("ws://132.232.16.28:5555");
-    // var ws = new WebSocket("ws://localhost:5555");
-    ws.onopen = function () {
-      console.log('已连接...')
-      boxTxtInsert('已连接...');
-    };
-
+  $(function () {
+    var ws = new WebSocket('ws://localhost:5555');
+    ws.onopen = function () { console.log('已连接。。。') }
+    ws.onclose = function () { console.log('连接已关闭。。。') }
     ws.onmessage = function (evt) {
-      // 收到消息
-      var received_msg = evt.data;
-      boxTxtInsert(received_msg);
-    };
-
-    ws.onclose = function () {
-      console.log('连接已关闭...')
-      boxTxtInsert('连接已关闭...');
-    };
-
-    btn.onclick = () => {
-      sendMessage();
+      let json = JSON.parse(evt.data);
+      handleData(json);
     }
 
-    document.onkeydown = function (event) {
-      var event = event || window.event;
-      if (event.keyCode === 13) {
-        event.preventDefault();
+
+    $('#ipt').blur(function () {
+      $(document).scrollTop(0);
+    })
+
+    $('#btn').click(function () {
+      sendData();
+    })
+
+    $(document).keydown(function (e) {
+      var e = e || window.event;
+      if (e.keyCode === 13) {
+        e.preventDefault();
         if (ipt === document.activeElement) {
-          sendMessage();
+          sendData();
         }
       }
+    })
+
+    const handleData = function (json) {
+      if (json.type === 'msg') {
+        var htmlstr = `<div class="msg-agent">
+          <div class="name">用户：${json.userId} ${json.time}</div>
+          <div class="bubble">${json.data}</div>
+          </div>`;
+        $('#box').append($(htmlstr))
+      } else if (json.type === 'insert') {
+        $('#box').append($(`<div class="msg-agent name">${json.userId} 加入群聊</div>`));
+        $('#title').html(`聊天室 （当前人数：${json.data}人）`);
+      } else if (json.type === 'delete') {
+        $('#box').append($(`<div class="msg-agent name">${json.userId} 退出群聊</div>`));
+        $('#title').html(`聊天室 （当前人数：${json.data}人）`);
+      }
+      box.scrollTop = box.scrollHeight;
     }
 
-    const boxTxtInsert = function (txt) {
-      var div = document.createElement('div');
-      div.innerHTML = txt;
-      box.appendChild(div);
-    }
-
-    const sendMessage = function () {
-      if (ipt.value) {
-        // 发消息
-        ws.send(ipt.value);
-        ipt.value = '';
+    const sendData = function () {
+      if ($('#ipt').val()) {
+        ws.send($('#ipt').val());
+        $('#ipt').val('')
       }
     }
 
-    ipt.onblur = function () {
-      setTimeout(function () {
-        var scrollHeight = document.documentElement.scrollTop || document.body.scrollTop || 0;
-        window.scrollTo(0, Math.max(scrollHeight - 1, 0));
-      }, 300);
-    }
 
-  }
+  })
+
 </script>
 
 </html>
