@@ -39,12 +39,15 @@ const sendMessage = (msgjson) => {
   }
   const jsonStr = JSON.stringify(json);
   userList.forEach((item, index) => {
-    console.log(index)
     try {
       item.socket.write(encodeWsFrame({ payloadData: jsonStr }))
     } catch (error) {
-      console.log(error)
       userList.splice(index, 1);
+      sendMessage({
+        userId: item.userId,
+        type: 'delete',
+        data: userList.length,
+      })
     }
   })
 }
