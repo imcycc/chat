@@ -23,6 +23,7 @@ const deleteUser = (socket) => {
       index = i;
     }
   });
+  console.log('delete:', index)
   userList.splice(index, 1);
   sendMessage({
     userId,
@@ -82,6 +83,7 @@ const server = net.createServer((socket) => {
 
       // 用户列表添加用户
       insertUser(socket);
+      console.log('one come');
 
       // 7. 建立连接后，通过data事件接收客户端的数据并处理
       socket.on('data', (buffer) => {
@@ -90,6 +92,7 @@ const server = net.createServer((socket) => {
         // opcode为8，表示客户端发起了断开连接
         if (data.opcode === 8) {
           socket.end()  // 与客户端断开连接
+          console.log('one go');
           deleteUser(socket);  // 删除用户
         } else {
           // 接收到客户端数据时的处理，此处默认为返回接收到的数据。
