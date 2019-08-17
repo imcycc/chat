@@ -70,11 +70,7 @@
     };
 
     btn.onclick = () => {
-      if (ipt.value) {
-        // 发消息
-        ws.send(ipt.value);
-        ipt.value = '';
-      }
+      sendMessage();
     }
 
     document.onkeydown = function (event) {
@@ -82,11 +78,7 @@
       if (event.keyCode === 13) {
         event.preventDefault();
         if (ipt === document.activeElement) {
-          if (ipt.value) {
-            // 发消息
-            ws.send(ipt.value);
-            ipt.value = '';
-          }
+          sendMessage();
         }
       }
     }
@@ -95,6 +87,15 @@
       var div = document.createElement('div');
       div.innerHTML = txt;
       box.appendChild(div);
+    }
+
+    const sendMessage = function () {
+      if (ipt.value) {
+        // 发消息
+        ws.send(ipt.value);
+        ipt.value = '';
+        window.screenTop = 0;
+      }
     }
 
   }
