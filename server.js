@@ -38,21 +38,13 @@ const sendMessage = (msgjson) => {
     time: new Date(),
   }
   const jsonStr = JSON.stringify(json);
-  userList.forEach(item => {
+  userList.forEach((item, index) => {
+    console.log(index)
     try {
       item.socket.write(encodeWsFrame({ payloadData: jsonStr }))
     } catch (error) {
       console.log(error)
-      let index = -1;
-      userList.forEach((d, i) => {
-        if (d.socket === item.socket) {
-          index = i;
-        }
-      });
-      console.log(index)
-      if (index !== -1) {
-        userList.splice(index, 1);
-      }
+      userList.splice(index, 1);
     }
   })
 }
