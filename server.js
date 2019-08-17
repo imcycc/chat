@@ -7,6 +7,7 @@ let userHistoryCount = 0;
 
 const insertUser = (socket) => {
   userHistoryCount++;
+  console.log(userHistoryCount)
   userList.push({ id: userHistoryCount, socket });
   sendMessage({
     userId: userList.find(d => d.socket === socket).id,

@@ -80,7 +80,8 @@
 
 <script type="text/javascript">
   $(function () {
-    var ws = new WebSocket('ws://localhost:5555');
+    // var ws = new WebSocket('ws://localhost:5555');
+    var ws = new WebSocket('ws://132.232.16.28:5555');
     ws.onopen = function () { console.log('已连接。。。') }
     ws.onclose = function () { console.log('连接已关闭。。。') }
     ws.onmessage = function (evt) {
