@@ -42,9 +42,10 @@ const sendMessage = (msgjson) => {
     try {
       item.socket.write(encodeWsFrame({ payloadData: jsonStr }))
     } catch (error) {
+      const userId = item.userId;
       userList.splice(index, 1);
       sendMessage({
-        userId: item.userId,
+        userId,
         type: 'delete',
         data: userList.length,
       })
