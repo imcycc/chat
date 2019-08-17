@@ -42,6 +42,7 @@ const sendMessage = (msgjson) => {
     } catch (error) {
       console.log(error)
       let index = -1;
+      console.log(index)
       userList.forEach((d, i) => {
         if (d.socket === item.socket) {
           index = i;
