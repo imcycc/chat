@@ -104,7 +104,7 @@ const server = net.createServer((socket) => {
         } else {
           // 接收到客户端数据时的处理，此处默认为返回接收到的数据。
           sendMessage({
-            userId: userList.find(d => d.socket === socket).id,
+            userId: userList.find(d => d.socket === socket).userId,
             type: 'msg',
             data: `${data.payloadData ? data.payloadData.toString() : ''}`,
           });
