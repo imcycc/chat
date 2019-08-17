@@ -43,6 +43,7 @@ const sendMessage = (msgjson) => {
       item.socket.write(encodeWsFrame({ payloadData: jsonStr }))
     } catch (error) {
       const userId = item.userId;
+      console.log(item)
       userList.splice(index, 1);
       sendMessage({
         userId,
