@@ -7,15 +7,15 @@ let userHistoryCount = 0;
 
 const insertUser = (socket) => {
   userHistoryCount++;
-  userList.push({ id: userHistoryCount, socket });
+  userList.push({ userId: userHistoryCount, socket });
   sendMessage({
-    userId: userList.find(d => d.socket === socket).id,
+    userId: userList.find(d => d.socket === socket).userId,
     type: 'insert',
     data: userList.length.toString(),
   });
 }
 const deleteUser = (socket) => {
-  const userId = userList.find(d => d.socket === socket).id;
+  const userId = userList.find(d => d.socket === socket).userId;
   let index = -1;
   userList.forEach((d, i) => {
     if (d.socket === socket) {
@@ -43,7 +43,6 @@ const sendMessage = (msgjson) => {
       item.socket.write(encodeWsFrame({ payloadData: jsonStr }))
     } catch (error) {
       const userId = item.userId;
-      console.log(item)
       userList.splice(index, 1);
       sendMessage({
         userId,
@@ -109,6 +108,7 @@ const server = net.createServer((socket) => {
             type: 'msg',
             data: `${data.payloadData ? data.payloadData.toString() : ''}`,
           });
+          console.log(`${data.payloadData ? data.payloadData.toString() : ''}`)
         }
       })
     }
