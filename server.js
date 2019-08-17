@@ -7,12 +7,11 @@ let userHistoryCount = 0;
 
 const insertUser = (socket) => {
   userHistoryCount++;
-  console.log(userHistoryCount)
   userList.push({ id: userHistoryCount, socket });
   sendMessage({
     userId: userList.find(d => d.socket === socket).id,
     type: 'insert',
-    data: userHistoryCount.toString(),
+    data: userList.length.toString(),
   });
 }
 const deleteUser = (socket) => {
@@ -23,7 +22,6 @@ const deleteUser = (socket) => {
       index = i;
     }
   });
-  console.log('delete:', index)
   userList.splice(index, 1);
   sendMessage({
     userId,
@@ -83,12 +81,11 @@ const server = net.createServer((socket) => {
 
       // 用户列表添加用户
       insertUser(socket);
-      console.log('one come');
 
       // 7. 建立连接后，通过data事件接收客户端的数据并处理
       socket.on('data', (buffer) => {
         const data = decodeWsFrame(buffer)
-
+        console.log(data)
         // opcode为8，表示客户端发起了断开连接
         if (data.opcode === 8) {
           socket.end()  // 与客户端断开连接
