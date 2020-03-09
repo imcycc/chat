@@ -13,30 +13,56 @@
       padding: 0;
     }
 
-    body {
-      max-width: 400px;
+    html,
+    body,
+    #root {
+      height: 100%;
+    }
+
+    #root {
+      max-width: 414px;
+      max-height: 736px;
       margin: 0 auto;
-      /* padding: 20px 0; */
-      padding: 10px;
-      background: #f6f6f6;
-    }
-
-    h3 {
-      padding: 10px 0;
-      border-bottom: 1px solid rgba(0, 0, 0, .45);
-    }
-
-    #box {
-      height: 400px;
-      width: 100%;
-      overflow-y: auto;
-      padding: 10px;
       box-sizing: border-box;
+      background: #f6f6f6;
+      position: relative;
+    }
+
+
+    #title {
+      position: absolute;
+      left: 0;
+      top: 0;
+      z-index: 1;
+      width: 100%;
+      box-sizing: border-box;
+      padding: 10px;
+      height: 46px;
       border-bottom: 1px solid rgba(0, 0, 0, .45);
+      background: #fff;
+    }
+
+    #content {
+      position: absolute;
+      left: 0;
+      top: 0;
+      width: 100%;
+      height: 100%;
+      padding: 56px 10px 110px;
+      box-sizing: border-box;
+      overflow-y: auto;
     }
 
     #ipt {
+      position: absolute;
+      left: 0;
+      bottom: 0;
       width: 100%;
+      height: 100px;
+      font-size: 14px;
+      padding: 10px;
+      box-sizing: border-box;
+      outline: none;
     }
 
     .msg-agent {
@@ -66,22 +92,20 @@
     }
   </style>
   <script tepe="text/javascript" src="http://code.jquery.com/jquery-3.3.1.min.js"></script>
-  <!-- <script tepe="text/javascript" src="http://code.jquery.com/jquery-3.2.1.js"></script> -->
 
 </head>
 
 <body>
-  <h3 id="title">聊天室（当前人数：0）</h3>
-  <div id="box"></div>
-  <textarea id="ipt" rows="6" placeholder="请输入聊天内容..."></textarea>
-  <br />
-  <button id="btn">发送</button>
+  <div id="root">
+    <h3 id="title">聊天室（当前人数：0）</h3>
+    <div id="content"></div>
+    <textarea id="ipt" placeholder="请输入聊天内容..."></textarea>
+  </div>
 </body>
 
 <script type="text/javascript">
   $(function () {
-    // var ws = new WebSocket('ws://localhost:5555');
-    var ws = new WebSocket('ws://132.232.16.28:5555');
+    var ws = window.location.host === 'chat.whosmeya.com' ? new WebSocket('ws://132.232.16.28:5555') : new WebSocket('ws://localhost:5555');
     ws.onopen = function () { console.log('已连接。。。') }
     ws.onclose = function () { console.log('连接已关闭。。。') }
     ws.onmessage = function (evt) {
@@ -94,10 +118,6 @@
       $(document).scrollTop(0);
     })
 
-    $('#btn').click(function () {
-      sendData();
-    })
-
     $(document).keydown(function (e) {
       var e = e || window.event;
       if (e.keyCode === 13) {
@@ -108,21 +128,41 @@
       }
     })
 
+    const formatTime = date => {
+      const year = date.getFullYear()
+      const month = date.getMonth() + 1
+      const day = date.getDate()
+      const hour = date.getHours()
+      const minute = date.getMinutes()
+      const second = date.getSeconds()
+
+      return [year, month, day].map(formatNumber).join('/') + ' ' + [hour, minute, second].map(formatNumber).join(':')
+    }
+
+    const formatNumber = n => {
+      n = n.toString()
+      return n[1] ? n : '0' + n
+    }
+
+    const formatUserName = function (val) {
+      return '用户' + formatNumber(val);
+    }
+
     const handleData = function (json) {
       if (json.type === 'msg') {
         var htmlstr = `<div class="msg-agent">
-          <div class="name">用户：${json.userId} ${json.time}</div>
+          <div class="name">${formatUserName(json.userId)} ${formatTime(new Date(json.time))}</div>
           <div class="bubble">${json.data}</div>
           </div>`;
-        $('#box').append($(htmlstr))
+        $('#content').append($(htmlstr))
       } else if (json.type === 'insert') {
-        $('#box').append($(`<div class="msg-agent name">${json.userId} 加入群聊</div>`));
+        $('#content').append($(`<div class="msg-agent name">${formatUserName(json.userId)} 加入群聊</div>`));
         $('#title').html(`聊天室 （当前人数：${json.data}人）`);
       } else if (json.type === 'delete') {
-        $('#box').append($(`<div class="msg-agent name">${json.userId} 退出群聊</div>`));
+        $('#content').append($(`<div class="msg-agent name">${formatUserName(json.userId)} 退出群聊</div>`));
         $('#title').html(`聊天室 （当前人数：${json.data}人）`);
       }
-      box.scrollTop = box.scrollHeight;
+      content.scrollTop = content.scrollHeight;
     }
 
     const sendData = function () {
